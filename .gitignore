@@ -1,0 +1,10 @@
+# macOS junk
+.DS_Store
+
+# Private working notes (never uploaded)
+private-notes/
+
+# Secrets and keys
+*.env
+*.key
+*.pem

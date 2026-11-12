@@ -1,0 +1,249 @@
+Content-Type: multipart/mixed; boundary="===============7701293176149296508=="
+MIME-Version: 1.0
+From: "PayPal Security" <security@yznphish.com>
+Reply-To: recovery-support@paypal-account-help.ru
+To: victim@example-corp.com
+Subject: Urgent: Your Account Has Been Limited - Verify Now
+Date: Sun, 19 Jul 2026 18:20:05 -0000
+Message-ID: <8f2c1a90-4e11-4c3a-9d2e-2b7c6a1f0033@mail.yznphish.com>
+Return-Path: <bounce@mkt7.yznphish.com>
+Received: from [192.0.2.201] (host-192-0-2-201.dyn-broadband.example.net [192.0.2.201])
+        by smtp-relay9.mkt7.yznphish.com with SMTP id z9y8x7; Sun, 19 Jul 2026 18:20:05 -0000
+Received: from smtp-relay9.mkt7.yznphish.com (unknown [203.0.113.77])
+        by mx-in.example-corp.com with ESMTP id d4e5f6; Sun, 19 Jul 2026 18:20:05 -0000
+Received: from mx-in.example-corp.com (mx-in.example-corp.com [198.51.100.12])
+        by mail.example-corp.com with ESMTPS id a1b2c3; Sun, 19 Jul 2026 18:20:05 -0000
+Authentication-Results: mx-in.example-corp.com;
+    spf=fail (sender IP is 203.0.113.77) smtp.mailfrom=yznphish.com;
+    dkim=fail (signature did not verify) header.d=yznphish.com;
+    dmarc=fail (p=REJECT sp=REJECT dis=none) header.from=yznphish.com
+Received-SPF: fail (example-corp.com: domain of yznphish.com does not designate 203.0.113.77 as permitted sender) client-ip=203.0.113.77;
+X-Originating-IP: [192.0.2.201]
+X-Spam-Status: Yes, score=9.8 required=5.0 tests=SPF_FAIL,DKIM_FAIL,DMARC_FAIL,URI_LOOKALIKE
+
+--===============7701293176149296508==
+Content-Type: multipart/related; boundary="===============9166313080693589681=="
+MIME-Version: 1.0
+
+--===============9166313080693589681==
+Content-Type: multipart/alternative; boundary="===============4880128431521157141=="
+MIME-Version: 1.0
+
+--===============4880128431521157141==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Dear Valued Customer,
+
+We have detected unusual activity on your PayPal account. Your account access
+has been LIMITED until we can verify your identity.
+
+To restore full access, please review and confirm your account statement
+(attached) and click the secure link below within 24 hours, or your account
+will be permanently suspended:
+
+    hxxps://yznphish[.]com/secure/login?ref=8834211
+
+Failure to verify may result in permanent loss of funds.
+
+Thank you for your prompt attention,
+PayPal Account Security Team
+
+--
+This is a controlled LAB/TRAINING sample. The domain and link above are
+defanged (hxxp / [.]) and do not resolve. No real credential harvesting
+occurs. Generated for educational phishing-forensics practice only.
+
+--===============4880128431521157141==
+Content-Type: text/html; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <body style="font-family:Arial,sans-serif;background:#f2f2f2;padding:20px;">
+    <div style="max-width:600px;margin:auto;background:#ffffff;border-radius:6px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.15);">
+      <img src="cid:banner_image_01" width="600" height="120" alt="Account Security Center" style="display:block;">
+      <div style="padding:24px;color:#222;">
+        <p>Dear Valued Customer,</p>
+        <p>We have detected <b>unusual activity</b> on your PayPal account. Your account
+        access has been <b>LIMITED</b> until we can verify your identity.</p>
+        <p>To restore full access, please review the attached statement and confirm your
+        identity within <b>24 hours</b>, or your account will be permanently suspended.</p>
+        <p style="text-align:center;margin:28px 0;">
+          <a href="https://yznphish.example.invalid/secure/login?ref=8834211"
+             style="background:#003087;color:#ffffff;padding:12px 28px;text-decoration:none;
+             border-radius:4px;font-weight:bold;">Verify My Account</a>
+        </p>
+        <p style="font-size:12px;color:#888;">Failure to verify may result in permanent loss of funds.</p>
+        <p>Thank you,<br>PayPal Account Security Team</p>
+      </div>
+      <div style="background:#f7f7f7;padding:14px 24px;font-size:11px;color:#999;">
+        LAB/TRAINING sample only. The link above uses the reserved .invalid TLD and does not resolve.
+        Generated for educational phishing-forensics practice.
+      </div>
+    </div>
+  </body>
+</html>
+
+--===============4880128431521157141==--
+
+--===============9166313080693589681==
+Content-Type: image/png
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-ID: <banner_image_01>
+Content-Disposition: inline; filename="banner.png"
+
+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
+RU5ErkJggg==
+
+--===============9166313080693589681==--
+
+--===============7701293176149296508==
+Content-Type: application/pdf
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Invoice_Statement.pdf"
+
+JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgL09wZW5BY3Rp
+b24gNSAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0g
+L0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAv
+TWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+
+PiA+PiAvQ29udGVudHMgNiAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1
+YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9U
+eXBlIC9BY3Rpb24gL1MgL0phdmFTY3JpcHQgL0pTIChhcHAuYWxlcnRcKCdTQUZFIFRSQUlOSU5H
+IEZJTEUgLSBubyBleHBsb2l0IGNvZGUsIHRoaXMgaXMgb25seSBhIGxhYiBzYW1wbGUuJ1wpOykg
+Pj4KZW5kb2JqCjYgMCBvYmoKPDwgL0xlbmd0aCAxMTggPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3
+MiA3MDAgVGQgKElOVk9JQ0UgLSBTdGF0ZW1lbnQgb2YgQWNjb3VudCkgVGogRVQKQlQgL0YxIDEw
+IFRmIDcyIDY3MCBUZCAoVGhpcyBpcyBhIGhhcm1sZXNzIGxhYi90cmFpbmluZyBQREYgc2FtcGxl
+LikgVGogRVQKZW5kc3RyZWFtCmVuZG9iagp4cmVmCjAgNwowMDAwMDAwMDAwIDY1NTM1IGYgCnRy
+YWlsZXIKPDwgL1NpemUgNyAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKMAolJUVPRgo=
+
+--===============7701293176149296508==--

@@ -1,24 +1,27 @@
-# Escalation Request – SOC-ALERT-01
+# Escalation Request – ALERT-003
 
 ## 1. Escalation Details
 
 | Field | Details |
 |---|---|
-| Alert ID | SOC-ALERT-01 |
+| Alert ID | ALERT-003 |
 | Alert Name | Suspicious PayPal Account Verification Email |
 | Escalation From | SOC L1 Analyst – Simulation |
 | Escalation To | SOC L2 Analyst |
 | Category | Phishing / Email Security |
-| Priority | To be determined according to organisational policy |
+| Priority | Medium – recommended for a comparable real-world incident |
 | Status | Escalation recommended – simulated handoff |
+| Final L1 Assessment | Suspicious – phishing indicators present |
 
 ## 2. Incident Summary
 
 A suspicious email impersonating PayPal Security was identified during a simulated SOC L1 investigation.
 
-The email claimed that the recipient's account had been limited due to unusual activity. It instructed the recipient to verify their account within 24 hours to avoid permanent suspension.
+The email claimed that the recipient's account had been limited due to unusual activity. It instructed the recipient to verify the account within 24 hours to avoid permanent suspension.
 
-The investigation identified multiple phishing indicators, including a mismatched sender domain, a different Reply-To address, failed email authentication checks and a suspicious account-verification URL.
+The investigation identified multiple phishing indicators, including a mismatched sender domain, a different Reply-To address, failed SPF/DKIM/DMARC authentication results, urgency-based wording and a suspicious account-verification URL.
+
+The email also contained a PDF attachment named `Invoice_Statement.pdf`. The supplied structural inspection information identified a JavaScript action displaying a training message.
 
 ## 3. Key Investigation Findings
 
@@ -37,33 +40,45 @@ The investigation identified multiple phishing indicators, including a mismatche
 | DKIM | Fail |
 | DMARC | Fail |
 
-### Other Findings
+### URL and Attachment Findings
+
+- The plain-text URL uses the hostname `yznphish.com`.
+- The HTML URL uses the reserved `.invalid` domain.
+- The two URL versions contain different hostnames.
+- The PDF attachment contains placeholder invoice content and a JavaScript action displaying a training message.
+- The attachment was not opened or executed.
+
+### Additional Findings
 
 - The email uses urgency and account-suspension threats to pressure the recipient.
-- The plain-text and HTML bodies contain different URL hostnames.
-- The PDF attachment contains minimal placeholder content and a JavaScript action displaying a training message.
 - The IP addresses in the sample belong to documentation/test ranges.
 - The sample explicitly identifies itself as a controlled training exercise.
+- No evidence establishes recipient interaction or account compromise.
 
 ## 4. Actions Completed by SOC L1
 
-- Preserved the original `.eml` file.
+- Preserved the original `.eml` sample for analysis.
 - Reviewed the sender, Reply-To and Return-Path fields.
-- Inspected the Received headers.
-- Reviewed SPF, DKIM and DMARC results.
+- Inspected the supplied Received headers.
+- Reviewed SPF, DKIM and DMARC authentication results.
 - Identified suspicious wording and URL indicators.
-- Inspected the attachment's available structure without executing it.
-- Documented the findings and limitations.
+- Recorded the plain-text and HTML URL differences.
+- Reviewed the supplied attachment information without executing the attachment.
+- Documented the evidence, findings and investigation limitations.
 
-No links were clicked, no attachment was executed and no credentials were submitted.
+No links were visited, no attachment was executed and no credentials were submitted.
+
+No production email quarantine, sender blocking or account remediation was performed.
 
 ## 5. Reason for Escalation
 
-The email contains several indicators associated with phishing and brand impersonation.
+The email contains multiple indicators associated with phishing and brand impersonation.
 
-The sender and Reply-To domains do not match the claimed PayPal identity. All three email authentication checks failed, and the message attempts to create urgency through a threat of account suspension.
+The sender and Reply-To domains do not match the claimed PayPal identity. All three email authentication checks failed, and the message uses urgency and account-suspension threats to pressure the recipient.
 
 In a real SOC environment, these findings would justify further review to determine whether similar emails reached other users and whether any recipient interacted with the message.
+
+The escalation is recommended for a comparable real-world incident. The current sample is a controlled training exercise, and no actual SOC L2 handoff was performed.
 
 ## 6. Requested SOC L2 Actions
 
@@ -76,23 +91,34 @@ The following actions are recommended for a comparable real-world incident:
 5. Examine the attachment using approved malware-analysis tools in an isolated environment.
 6. Determine whether email quarantine or removal is required.
 7. Recommend credential resets and session revocation if credential exposure is confirmed.
+8. Follow organisational procedures for blocking confirmed malicious indicators.
 
-## 7. Evidence Provided
+## 7. Investigation Limitations
+
+- The email is explicitly identified as a controlled training sample.
+- The IP addresses belong to documentation/test ranges.
+- The HTML URL uses the reserved `.invalid` domain.
+- No live URL was visited.
+- The attachment was not opened or executed.
+- No recipient mailbox, endpoint or authentication logs were supplied.
+- No evidence establishes successful credential theft or account compromise.
+
+## 8. Evidence Provided
 
 - `phishing_sample.eml`
-- `alerts/alert_01.md`
-- `investigations/investigation_01.md`
-- `reports/incident_report.md`
+- `../alerts/alert_03.md`
+- `../investigations/investigation_03.md`
 
-Supporting screenshots are stored in the `screenshots/` directory.
+Supporting screenshots can be stored in the `screenshots/` directory.
 
-## 8. SOC L1 Recommendation
+## 9. SOC L1 Recommendation
 
-**Recommended Decision:** Escalate for SOC L2 review in a real-world environment.
+**Recommended Decision:** Escalate for SOC L2 review in a comparable real-world environment.
 
-**Reason:** Multiple phishing indicators are present and further investigation would be required to establish recipient exposure or possible compromise.
+**Reason:** Multiple phishing indicators are present, and further investigation would be required to establish recipient exposure or possible compromise.
 
-**Current Assessment:** Suspicious phishing-style email.
+**Current Assessment:** Suspicious – phishing indicators present.
 
-**Confirmed Compromise:** Not established.
+**Confirmed Compromise:** Not established by the available evidence.
 
+**Handoff Status:** Simulated escalation recommendation only. No actual SOC L2 handoff was performed.

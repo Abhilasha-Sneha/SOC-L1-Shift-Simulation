@@ -1,61 +1,80 @@
-# ALERT-002: Possible Encoded PowerShell Execution
+# SOC-ALERT-02: Possible Encoded PowerShell Execution
 
 ## 1. Alert Information
 
-- **Alert ID:** ALERT-002
+- **Alert ID:** SOC-ALERT-02
 - **Alert Name:** Possible Encoded PowerShell Execution
-- **Category:** Endpoint Security / Suspicious Process Execution
-- **Severity:** Medium (Initial Assessment)
-- **Status:** New – Pending Investigation
+- **Category:** Endpoint Security 
+- **Severity:** Medium 
+- **Status:** Investigated
 - **Affected Asset:** Windows Endpoint
 - **Log Source:** Windows Sysmon
+- **ndex** Main
+- **Sourcetype** sysmon_xml_upload
+- **Dataset:** windows-sysmon.log
 - **Sysmon Event ID:** 1 – Process Creation
 - **MITRE ATT&CK:** T1059.001 – PowerShell
 
 ## 2. Alert Description
 
-A potentially suspicious PowerShell process execution has been flagged for investigation.
+This alert identifies PowerShell process executions involving encoded command arguments and execution policy bypass.
 
-PowerShell supports encoded commands, which can allow commands to be passed in an encoded format rather than appearing as readable text in the command line. This functionality can be used by legitimate administrative scripts as well as attackers attempting to conceal their activity.
+Encoded PowerShell commands can be used for legitimate administrative tasks, but they can also be used to conceal commands during suspicious or malicious activity.
 
-The SOC analyst must investigate the process execution and determine whether the activity is legitimate or potentially malicious.
+The alert is intended to identify these executions for further investigation. The presence of encoded commands does not automatically indicate malicious activity.
 
-## 3. Initial Indicators to Investigate
+## 3.Detection Query
 
-The following indicators should be examined:
+SPL Query:
+index=main source="windows-sysmon.log" sourcetype="sysmon_xml_upload"
+| rex field=_raw "<EventID>(?<EventID>\d+)</EventID>"
+| rex field=_raw "Name='Image'>(?<Image>[^<]*)</Data>"
+| rex field=_raw "Name='CommandLine'>(?<CommandLine>[^<]*)</Data>"
+| rex field=_raw "Name='ParentImage'>(?<ParentImage>[^<]*)</Data>"
+| rex field=_raw "Name='User'>(?<User>[^<]*)</Data>"
+| rex field=_raw "Name='ProcessId'>(?<ProcessId>[^<]*)</Data>"
+| search EventID=1
+| where match(CommandLine,"(?i)-enc") AND match(CommandLine,"(?i)-exec\s+bypass")
+| table _time Image CommandLine ParentImage User ProcessId
+| sort -_time
 
-- PowerShell executable (`powershell.exe` or `pwsh.exe`).
-- Command-line arguments such as `-EncodedCommand` or `-enc`.
-- Base64-encoded command content.
-- Unusual parent-child process relationships.
-- Unexpected user accounts or execution contexts.
-- Related network connections, DNS queries, and file creation events.
 
-**Note:** These are investigation indicators, not confirmed findings.
+## 4. What the Query Does
 
-## 4. Investigation Objectives
+-Searches the Windows Sysmon dataset in Splunk.
+-Extracts the Sysmon Event ID from the raw event.
+-Extracts the process image, command line, parent image, user and process ID.
+-Filters for Sysmon Event ID 1, which records process creation.
+-Identifies command lines containing encoded-command and execution-policy-bypass arguments.
+-Displays the relevant process information for further investigation.
 
-1. Identify the PowerShell process execution event.
-2. Examine the complete command line.
-3. Determine whether an encoded command was used.
-4. Decode and analyze the command, if applicable.
-5. Identify the parent process and executing user.
-6. Correlate related Sysmon events.
-7. Determine whether the activity is malicious, benign, or inconclusive.
 
-## 5. Initial Assessment
+## 5. Simulation Note
 
-Encoded PowerShell execution can be associated with legitimate administration or malicious activity.
+This alert was investigated using a Windows Sysmon training dataset uploaded to Splunk Cloud.
 
-The alert requires further investigation before assigning a final verdict.
+The dataset contained 929 events. The investigation identified a PowerShell process using encoded command arguments and execution policy bypass.
 
-## 6. Expected SOC Actions
+The encoded command was decoded using Base64 UTF-16LE and found to contain:
 
-- Review relevant Sysmon process creation events in Splunk.
-- Examine process relationships and command-line arguments.
-- Investigate related network and file activity.
-- Document supporting evidence.
-- Escalate to L2 if suspicious activity is identified or the investigation remains inconclusive.
+Write-Host "Hello World"
+
+A temporary file associated with PowerShell execution-policy testing was also identified during the investigation.
+
+Based on the decoded command and the available supporting evidence, the activity was assessed as likely benign.
+
+This project demonstrates alert investigation and analysis using training data. It does not represent a live production security alert.
+
+
+## 6. Next
+
+-Review the complete PowerShell command line.
+-Decode and analyse encoded command content.
+-Identify the parent process and executing user.
+-Review available related process and file activity.
+-Check whether relevant network telemetry is available.
+-Document the evidence and determine the final verdict.
+
 
 ## 7. MITRE ATT&CK Reference
 
@@ -65,6 +84,12 @@ The alert requires further investigation before assigning a final verdict.
 
 ## 8. Final Verdict
 
-**Pending Investigation**
+**Final Classification:** Likely Benign
 
-The final classification will be assigned after reviewing the available evidence.
+The encoded PowerShell command was decoded and found to contain:
+Write-Host "Hello World"
+
+This command only prints text to the console. A temporary file consistent with PowerShell execution-policy testing was also identified.
+
+No malicious behaviour was established from the available training dataset. Based on the evidence reviewed, the activity was assessed as likely benign.
+

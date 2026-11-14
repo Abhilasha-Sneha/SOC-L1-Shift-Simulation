@@ -5,15 +5,10 @@
 | Question | Answer |
 |---|---|
 | **What fired** | SOC-ALERT-01 detected source IPs with 10 or more failed SSH logins. I investigated 194[.]8[.]74[.]23, which generated 132 failed SSH login events across four servers: mailsv, www1, www2 and www3. |
-
 | **What I checked** | Failed logins per source IP and host, targeted usernames, successful SSH logins, other activity associated with the IP, and its VirusTotal reputation. |
-
 | **Verdict** | True Positive (TP). The alert detected repeated failed SSH authentication activity from the investigated IP |
-
 | **Why** | The IP generated 132 failed SSH login events across four servers, targeting 74 distinct usernames, including `root`. No successful SSH login from this IP was found in the searched dataset. |
-
 | **Severity** | Medium. Repeated attempts across four servers, including attempts against root, warrant further investigation. |
-
 | **Decision** | **Escalate to L2** for review of the repeated SSH failures and to check whether any other high-failure source IPs had successful logins. |
 
 ## 2. Scope
@@ -33,7 +28,7 @@
 **Question:** What fields does a failed SSH event contain?
 **Query:** `index=main sourcetype=secure-2 "Failed password" | head 5`
 **Result:**
-```text
+```
 Thu Nov 06 2026 06:16:56 mailsv1 sshd[1039]: Failed password for root from 194.8.74.23 port 3768 ssh2
 ```
 **Meaning:** The event shows a failed SSH password attempt against root from 194.8.74.23. The raw message identifies the hostname as mailsv1, while Splunk's indexed host field identifies it as mailsv. I use the indexed host field for host-based investigation.
@@ -42,7 +37,7 @@ Thu Nov 06 2026 06:16:56 mailsv1 sshd[1039]: Failed password for root from 194.8
 **Question:** How do accepted logins differ from failures?
 **Query:** `index=main sourcetype=secure-2 "Accepted password" | head 5`
 **Result:**
-```text
+```
 Thu Nov 06 2026 06:16:56 mailsv1 sshd[74181]: Accepted password for nsharpe from 10[.]2[.]10[.]163 port 4245 ssh2
 ```
 **Meaning:** This event demonstrates the format of a successful SSH login. It is from a different source IP (10[.]2[.]10[.]163), so it is only a reference example and does not indicate successful access by the investigated IP.
@@ -79,14 +74,16 @@ index=main "194.8.74.23" "Failed password"
 **Meaning:** The source IP attempted multiple account names, including root. This pattern is consistent with automated username and password guessing.
 
 ### Step 5: Were the usernames real accounts?
-**Query:** Same extraction, with `eval account_type=if(match(_raw,"Failed password for invalid user"),"Invalid username","Potentially valid username")`.
-**Result:** 16 usernames were not marked "invalid user" (for example `root`, `nagios`, `games`, `mail`). TODO: list the full set from your Splunk table.
-**Meaning:** The IP tried names that look like real system accounts. The log wording alone doesn't prove those accounts exist.
+**Query:** Same extraction, with ```eval account_type=if(match(_raw,"Failed password for invalid user"),"Invalid username","Potentially valid username")```.
+
+**Result:** 16 usernames were not marked as "invalid user" in the failed-login messages. Examples include `root`, `nagios`, `games` and `mail`.
+
+**Meaning:** The source IP attempted usernames that were not explicitly identified as invalid in the log messages. However, this does not confirm that the accounts existed or were active.
 
 ### Step 6: Did this IP ever succeed?
-**Query:** `index=main sourcetype=secure-2 "194.8.74.23"
+**Query:** ```index=main sourcetype=secure-2 "194.8.74.23"
 ("Accepted password" OR "Accepted publickey")
-| table _time host _raw`
+| table _time host _raw```
 
 **Result:** 0 successful SSH login events found for 194.8.74.23 in the searched dataset.
 
@@ -94,13 +91,13 @@ index=main "194.8.74.23" "Failed password"
 
 ### Step 7: Who else is failing, and did anyone succeed?
 
-**Query:** index=main sourcetype=secure-2
+**Query:** ```index=main sourcetype=secure-2
 | eval failed=if(searchmatch("Failed password"),1,0)
 | eval accepted=if(searchmatch("Accepted password") OR searchmatch("Accepted publickey"),1,0)
 | rex field=_raw "from (?<src_ip>\d{1,3}(?:\.\d{1,3}){3}) port"
 | stats sum(failed) as failed_logins sum(accepted) as successful_logins by src_ip
-| where failed_logins >= 10
-| sort -failed_logins
+| where failed_logins >= 10 AND successful_logins > 0
+| sort -failed_logins```
 
 **Result:** Three source IPs had at least 10 failed SSH login attempts and also recorded successful SSH logins:
 | Source IP | Failed logins | Successful logins |
@@ -112,17 +109,33 @@ index=main "194.8.74.23" "Failed password"
 **Meaning:** These three internal IP addresses had both failed and successful SSH authentication events. Their activity requires further review to determine whether the logins were legitimate. The presence of successful logins alone does not establish malicious activity.
 
 ### Step 8: What else does this IP do?
-**Query:** `index=main "194.8.74.23" | stats count by sourcetype source host | sort -count`
-**Result:** TODO: breakdown of the 313 events by sourcetype.
-**Meaning:** TODO: after reading the raw non-SSH events (for example the web logs), say whether they look like normal browsing or probing.
+**Query:** ```index=main "194.8.74.23" | stats count by sourcetype source host | sort -count```
+
+**Result:** The search returned 313 events mentioning `194.8.74.23`.
+| Sourcetype | Host | Events |
+|---|---|---:|
+| access_combined_wcookie | www3 | 69 |
+| secure-2 | www1 | 62 |
+| access_combined_wcookie | www2 | 59 |
+| access_combined_wcookie | www1 | 53 |
+| secure-2 | mailsv | 45 |
+| secure-2 | www3 | 19 |
+| secure-2 | www2 | 6 |
+| **Total** | | **313** |
+
+Of these, 132 were SSH authentication events (`secure-2`) and 181 were web access events (`access_combined_wcookie`).
+
+**Meaning:** The IP appears in both SSH authentication logs and web access logs. The SSH events show repeated failed login attempts. The 181 web access events need separate inspection of requested paths, HTTP methods, status codes and user agents before they can be classified as normal browsing or suspicious probing.
 
 ### Step 9: Timing
-**Query:** `index=main "194.8.74.23" "Failed password" | timechart span=5m count`
-**Result:** TODO: first and last timestamp, and the shape of the chart.
-**Meaning:** TODO: if all events share nearly one timestamp, I cannot state a rate or duration.
+**Query:** ```index=main "194.8.74.23" "Failed password" | timechart span=5m count```
+
+**Result:** The 132 failed SSH events span from 30 October 2026 at 06:16:55 to 6 November 2026 at 06:16:56. The first five-minute time bucket contains 6 events. The complete time distribution has not yet been reviewed.
+
+**Meaning:** The failed-login activity occurred across an approximately seven-day period. The full distribution must be reviewed before making conclusions about bursts, intervals or the frequency of attempts.
 
 ### Step 10: Did targeted accounts log in successfully?
-**Query:** index=main sourcetype=secure-2 ("Accepted password" OR "Accepted publickey")
+**Query:** ```index=main sourcetype=secure-2 ("Accepted password" OR "Accepted publickey")
 | rex field=_raw "Accepted (?:password|publickey) for (?<username>\S+)"
 | search [
     search index=main sourcetype=secure-2 "194.8.74.23" "Failed password"
@@ -130,7 +143,7 @@ index=main "194.8.74.23" "Failed password"
     | dedup username
     | fields username
 ]
-| table _time host username _raw
+| table _time host username _raw```
 
 **Result:** 0 successful SSH login events were found for the usernames targeted by 194.8.74.23 in the searched dataset.
 
@@ -139,16 +152,16 @@ index=main "194.8.74.23" "Failed password"
 ### Step 11: Threat intelligence
 **Indicator:** `194[.]8[.]74[.]23` in VirusTotal.
 
-**Result:** No vendor flagged it as malicious on TODO: [date].
+**Result:** VirusTotal showed zero security-vendor detections for `194[.]8[.]74[.]23` on 10 Nov 2026.
 
-**Meaning:** This does not clear the IP. Many attacker IPs have no detections. I kept the IP as suspicious based on its behaviour in the logs.
+**Meaning:** No vendor detections were reported at the time of the lookup. This does not establish that the IP is safe. The assessment remains based primarily on its observed behaviour in the logs.
 
 ## 4. Analysis
 
-- **Observation:** 132 failed SSH logins from one IP across four servers; TODO: [N] usernames, including `root`; no successful login from this IP.
-- **Interpretation:** This fits automated credential guessing from an external source.
-- **Alternatives considered:** A scanner or a security test could produce the same pattern. I can't rule that out from logs alone, but it doesn't change the response, because unauthorised guessing against a root account still warrants a block.
-- **What I cannot tell:** Whether the successful SSH logins from the three internal IPs were legitimate or authorised.
+**Observation:** 132 failed SSH logins from one IP across four servers, targeting 74 distinct usernames, including `root`. No successful SSH login from this IP was found in the searched dataset.
+**Interpretation:** The repeated attempts across multiple servers and usernames are consistent with automated credential guessing.
+**Alternatives considered:** A scanner or authorised security test could produce a similar pattern. The available logs do not establish the source operator's intent.
+**What I cannot tell:** Whether the successful SSH logins from the three internal IPs were legitimate or authorised. I also cannot determine whether the 181 web access events were normal requests or suspicious probing without further inspection.
 
 
 ## 5. Verdict
@@ -174,8 +187,10 @@ index=main "194.8.74.23" "Failed password"
 
 ## 10. Limitations
 
-- Static, fictional training data, so results don't represent a live environment.
-- A missing successful login from this IP doesn't rule out other compromise paths.
-- Account existence wasn't verified.
-- TODO: timestamp limitation, if check C of the earlier checks confirms it.
-- VirusTotal results reflect the lookup date only.
+- The investigation uses static, fictional training data and does not represent a live environment.
+- A missing successful login from the investigated IP does not rule out other compromise paths or activity outside the dataset.
+- Account existence was not independently verified.
+- The complete five-minute event distribution was not reviewed, so conclusions about bursts or attempt frequency are limited.
+- The 181 web access events were identified but not individually investigated.
+- The successful SSH sessions from the three internal IPs were not verified as legitimate or authorised.
+- VirusTotal results reflect the lookup date only and may change over time.

@@ -1,143 +1,133 @@
-# Incident Report — ALERT-002
+# Incident Response Report 02: Possible Encoded PowerShell Execution
 
-## Possible Encoded PowerShell Execution
-
-### 1. Executive Summary
-
-A PowerShell process was identified executing with encoded command arguments and execution policy bypass.
-
-The activity was investigated using Windows Sysmon logs in Splunk Cloud. The encoded command was extracted and decoded, revealing a simple console output instruction:
-
-`Write-Host "Hello World"`
-
-A temporary file consistent with PowerShell execution-policy testing was also identified.
-
-Based on the available evidence, the activity was assessed as likely benign. No malicious behaviour was substantiated during the investigation.
-
-### 2. Alert Information
+## 1. Incident Details
 
 | Field | Details |
 |---|---|
-| Alert ID | ALERT-002 |
-| Alert Name | Possible Encoded PowerShell Execution |
+| Incident ID | ALERT-002 |
+| Incident Name | Possible Encoded PowerShell Execution |
 | Category | Endpoint Security |
-| Severity | Medium (initial alert classification) |
-| Status | Investigated |
-| Final Assessment | Likely Benign |
-| SIEM | Splunk Cloud |
+| Investigation Date | 09 November 2026 |
+| Affected Asset | Windows Endpoint |
 | Log Source | Windows Sysmon |
-| MITRE ATT&CK | T1059.001 – PowerShell |
+| SIEM Platform | Splunk Cloud |
+| Dataset | `windows-sysmon.log` |
+| Index | `main` |
+| Sourcetype | `sysmon_xml_upload` |
+| Initial Severity | Medium |
+| Final Severity Assessment | Low |
+| Final Verdict | Likely Benign |
+| Escalation Decision | No Immediate L2 Escalation Recommended |
 
-### 3. Detection Details
+## 2. Executive Summary
 
-A Windows PowerShell process was identified with the following command-line indicators:
+This report documents the investigation of a PowerShell process execution involving encoded command arguments and execution policy bypass.
 
-- `-Exec bypass`
-- `-enc`
+The activity was identified in a Windows Sysmon training dataset and investigated using Splunk Cloud.
 
-**Process Information:**
+The investigation identified a PowerShell process launched by `cmd.exe` under the `ATTACKRANGE\Administrator` account.
 
-| Field | Value |
-|---|---|
-| Process | powershell.exe |
-| Parent Process | cmd.exe |
-| Process ID | 5948 |
-| Timestamp | 2026-11-09 10:17:41 |
-| User | `ATTACKRANGE\Administrator` |
-| Integrity Level | High |
-
-The execution policy bypass and encoded command arguments triggered further investigation.
-
-### 4. Key Investigation Findings
-
-**Finding 1 — Encoded Command**
-
-The Base64 command was decoded using UTF-16LE encoding.
-
-Decoded command:
+The encoded command was decoded using Base64 UTF-16LE and found to contain:
 
 ```powershell
 Write-Host "Hello World"
 ```
 
-The command only prints text to the console and does not show an apparent malicious payload.
+A temporary file consistent with PowerShell execution-policy testing was also identified.
 
-**Finding 2 — Parent Process**
+No malicious behaviour was established from the available evidence. The activity was assessed as **Likely Benign**, and immediate L2 escalation was not recommended.
 
-The immediate parent process was identified as `cmd.exe`.
+## 3. Key Findings
 
-However, the corresponding parent process creation event was not available in the uploaded dataset, preventing complete process-chain reconstruction.
-
-**Finding 3 — File Creation**
-
-A temporary file was identified:
-
-```text
-C:\Users\Administrator\AppData\Local\Temp\__PSScriptPolicyTest_1py4clft.gbo.ps1
-```
-
-The filename is consistent with PowerShell execution-policy testing. The file contents were not independently inspected.
-
-**Finding 4 — Process and Network Activity**
-
-No matching Sysmon Event ID 10 process-access events were identified for the investigated PowerShell PID.
-
-The uploaded dataset did not contain Sysmon Event ID 3 network connection events, so network activity could not be fully assessed.
-
-### 5. Evidence Summary
-
-| Evidence | Observation |
+| Investigation Area | Finding |
 |---|---|
-| Encoded PowerShell execution | Confirmed |
-| Execution policy bypass | Confirmed |
-| Decoded command | `Write-Host "Hello World"` |
-| Parent process | cmd.exe |
-| Temporary file creation | Identified |
-| User context | Administrator |
-| Integrity level | High |
-| Malicious payload | Not identified |
-| Network telemetry | Not available for Event ID 3 |
+| PowerShell Execution | Identified through Sysmon Event ID 1 |
+| Process ID | 5948 |
+| Parent Process | `cmd.exe`, PID 4936 |
+| Executing User | `ATTACKRANGE\Administrator` |
+| Integrity Level | High |
+| Command-Line Indicators | `-Exec bypass` and `-enc` |
+| Encoded Command | Successfully decoded |
+| Decoded Command | `Write-Host "Hello World"` |
+| Parent Process Event | Corresponding CMD creation event not found |
+| Process Access | No matching Event ID 10 events for PID 5948 |
+| File Creation | Temporary PowerShell policy-test file identified |
+| Network Telemetry | Sysmon Event ID 3 events absent from the dataset |
 
-### 6. MITRE ATT&CK Mapping
+## 4. Impact Assessment
 
-| Technique | ID | Relevance |
-|---|---|---|
-| Command and Scripting Interpreter: PowerShell | T1059.001 | PowerShell was used to execute the command |
+The investigation identified PowerShell execution with encoded command arguments and execution policy bypass.
 
-The technique mapping describes the observed execution method. It does not establish that the activity was malicious.
+These indicators can be associated with suspicious activity and required further investigation.
 
-### 7. Final Assessment
+However, the decoded command contained only a console output instruction. No malicious functionality was established from the available evidence.
 
-<escape>**Classification: False Positive for malicious activity**</escape>
+The investigation did not establish unauthorised access, data theft, malware execution, or successful network communication.
 
-**Reasoning:**
+The overall security state of the endpoint could not be independently verified because some supporting telemetry was unavailable.
 
-- The encoded command was successfully decoded.
-- The command contained only a console output instruction.
-- A temporary file consistent with PowerShell execution-policy testing was identified.
-- No additional malicious behaviour was established through the available evidence.
+**Assessed Impact:** No confirmed malicious impact identified from the available training dataset.
 
-The initial alert indicators warranted investigation, but the evidence did not substantiate malicious execution.
+## 5. Actions Performed
 
-### 8. Recommended Action
+The following investigation activities were completed:
 
-- Document the activity as likely benign.
-- Retain the investigation evidence and Splunk queries.
-- Reassess if additional suspicious telemetry becomes available.
-- Review the original parent process and temporary file if more complete endpoint data becomes available.
+1. Verified that the Windows Sysmon dataset was successfully indexed in Splunk Cloud.
+2. Reviewed available Sysmon event types.
+3. Identified the PowerShell process creation event.
+4. Examined the command-line arguments and process details.
+5. Decoded the Base64 command using UTF-16LE encoding.
+6. Identified the parent process and executing user.
+7. Reviewed available process-access events.
+8. Identified a temporary PowerShell-related file creation event.
+9. Checked the availability of network connection telemetry.
+10. Documented the findings and assigned a final verdict.
 
-### 9. Investigation Limitations
+No endpoint isolation, process termination, account disabling, or network blocking was performed as part of this simulation.
 
-- The parent CMD process creation event was unavailable.
-- The temporary file contents were not inspected.
-- The PowerShell executable hashes were not independently validated.
-- Sysmon Event ID 3 network connection telemetry was absent from the uploaded dataset.
-- The conclusion is limited to the evidence available in the lab dataset.
+## 6. Recommendations
 
-### 10. Closure Summary
+The following actions are recommended if additional evidence becomes available:
 
-The alert was investigated through process creation analysis, command decoding, parent-process review, file creation analysis, and available endpoint telemetry.
+1. Review the parent `cmd.exe` process and its original command line.
+2. Inspect the temporary PowerShell policy-test file if it can be recovered.
+3. Collect additional endpoint process and network telemetry.
+4. Validate the PowerShell executable hashes against a trusted reference.
+5. Continue monitoring for unusual PowerShell executions involving encoded commands and execution policy bypass.
+6. Reassess the alert if additional suspicious activity is identified.
 
-The decoded command and temporary file provided evidence supporting a benign explanation. No malicious activity was substantiated.
+## 7. Final Disposition
 
-**Final Disposition:** Likely benign — close as a false positive for malicious activity, based on the available lab evidence.
+**Final Verdict: Likely Benign**
+
+**Final Severity Assessment: Low**
+
+**Escalation Decision: No Immediate L2 Escalation Recommended**
+
+The investigation did not establish malicious behaviour from the available Windows Sysmon training dataset.
+
+The decoded command showed a simple console output instruction, and the temporary file was consistent with PowerShell execution-policy testing.
+
+The alert may be closed as likely benign, subject to organisational policy and any additional evidence that becomes available.
+
+## 8. Investigation References
+
+The following project documents contain the supporting alert and investigation details:
+
+- [Alert 02 – Possible Encoded PowerShell Execution](../alerts/alert_02.md)
+- [Investigation 02 – Possible Encoded PowerShell Execution](../investigations/investigation_02.md)
+- [Escalation Assessment 02 – Possible Encoded PowerShell Execution](../escalation/escalation_02.md)
+
+## 9. Limitations
+
+This report is based on a static Windows Sysmon training dataset. The following limitations apply:
+
+- The parent `cmd.exe` process creation event was not available.
+- The temporary PowerShell policy-test file contents were not independently inspected.
+- No matching Event ID 10 process-access events were found for PowerShell PID 5948.
+- Sysmon Event ID 3 network connection events were absent from the dataset.
+- The recorded PowerShell executable hashes were not independently validated.
+- The complete process execution chain could not be established.
+- The overall security state of the endpoint could not be independently verified.
+
+The final assessment is based only on the evidence available in the training dataset. This report represents a simulated SOC investigation and does not describe a confirmed real-world security incident.

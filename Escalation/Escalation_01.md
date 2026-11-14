@@ -6,16 +6,18 @@
 |---|---|
 | Alert ID | SOC-ALERT-01 |
 | Alert Name | Multiple Failed SSH Login Attempts |
-| Date of Activity | 6 November 2026 |
+| Latest Observed Activity | 6 November 2026 |
+| Activity Period | 30 October–6 November 2026 (training dataset)|
 | Affected Hosts | `www1`, `mailsv`, `www2`, `www3` |
-| Primary Source IP | `194.8.74.23` |
+| Primary Source IP | `194[.]8[.]74[.]23` |
 | Failed Login Attempts | 132 |
+| Severity | Medium |
 | Initial Assessment | Suspicious SSH authentication activity |
 | Escalation | Recommended to SOC L2 |
 
 ## 2. Incident Summary
 
-During the investigation, I identified repeated failed SSH login attempts from the source IP `194.8.74.23`.
+During the investigation, I identified repeated failed SSH login attempts from the source IP `194[.]8[.]74[.]23`.
 
 The activity affected four hosts and generated 132 failed authentication events. The attempts involved multiple usernames, including `root`.
 
@@ -26,12 +28,12 @@ This pattern raised concern because the same source IP repeatedly attempted to a
 | Finding | Result |
 |---|---|
 | Failed SSH attempts | 132 |
-| Source IP | `194.8.74.23` |
+| Source IP | `194[.]8[.]74[.]23` |
 | Hosts affected | 4 |
 | Root account targeted | Yes |
 | Successful login from the primary IP | No successful authentication observed in the investigated logs |
-| Other source IPs | Additional IPs were also found in failed SSH login events against `mailsv` |
-| VirusTotal lookup | 0 security vendor detections at the time of checking |
+| Other source IPs | Three internal IPs were identified with both failed and successful SSH login events; their activity requires validation |
+| VirusTotal lookup | 0 security vendor detections on 10 November 2026 |
 
 The initial broad search returned 313 matching events. After filtering for failed SSH password attempts, 132 events were identified.
 
@@ -74,6 +76,7 @@ I recommend that SOC L2:
 3. Investigate the additional source IP addresses.
 4. Review related events for possible follow-up activity.
 5. Determine whether the source IP should be blocked, based on the wider investigation.
+6. Review the 181 related web access events, including requested paths, HTTP methods, status codes and user agents.
 
 ## 8. Final Escalation Decision
 

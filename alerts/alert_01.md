@@ -16,11 +16,11 @@
 
 ## 2. What Fired
 
-The detection query flagged source IPs with 10 or more failed SSH logins. The investigation focused on `194[.]8[.]74[.]23`, which had 132 failed logins against `mailsv`. Other IPs also generated failures against the same server. Their counts are in the investigation file.
+The detection query flagged source IPs with 10 or more failed SSH logins. I investigated 194[.]8[.]74[.]23, which had 132 failed logins across four servers (www1 62, mailsv 45, www3 19, www2 6). Three internal IPs also crossed the threshold. They are analysed separately because they also had many successful logins.
 
 ## 3. Detection Query
 
-```spl
+```
 index=main sourcetype=secure-2 "Failed password"
 | rex "from (?<src_ip>\d{1,3}(?:\.\d{1,3}){3}) port"
 | stats count by src_ip
@@ -46,7 +46,7 @@ The data is a static training dataset, so no new events arrive over time. A sche
 |---|---|
 | What I checked | Failed SSH login counts per source IP, targeted usernames, whether any login from the source IP succeeded, and other activity associated with the IP |
 | Verdict | True Positive (TP) |
-| Why | The source IP 194[.]8[.]74[.]23 generated 132 failed SSH login attempts against mailsv. Multiple usernames, including root, were targeted. No successful login from this IP was observed in the logs reviewed |
+| Why | 194[.]8[.]74[.]23 generated 132 failed SSH logins across four servers, using 74 different usernames (4 attempts were on root). No successful login from this IP was found. This fits automated credential guessing. |
 | Escalation | Escalate to L2 – repeated authentication failures against multiple accounts indicate suspicious activity that requires further investigation. |
 
 Full evidence, queries and reasoning: [Investigation 01](../Investigations/Investigation_01.md)
